@@ -12,7 +12,9 @@ Create .env file.
 cp .env.example .env
 ```
 
-Run the `_install.ps1` file as administrator.
+Run the `_install.ps1` file as user.
+
+The instance is launched, run the `_mount.ps1` file as administrator.
 
 # Uninstall
 
