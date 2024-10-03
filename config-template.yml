@@ -1,0 +1,92 @@
+#cloud-config
+hostname: __HOSTNAME__ # この仮想環境のホスト名
+locale: en_US.UTF-8 # システムロケールを英語(us)に設定
+timezone: Asia/Tokyo # システム時刻を日本時間に設定 UTC+9:00
+ssh_pwauth: no # パスワード認証による ssh ログインを禁止
+package_update: true # パッケージインストール前にパッケージリポジトリを更新
+package_upgrade: true # パッケージインストール前に既存パッケージを更新
+package_reboot_if_required: true # 再起動が必要なパッケージがある場合に再起動を実施
+
+# apt パッケージをインストール
+packages:
+  - curl # http リクエスト飛ばせる定番コマンド
+  - ca-certificates # 基本的なCA認証を取得するパッケージ
+  - nano # vim が苦手な人向けのシンプルなテキストエディタ
+  - tree # ディレクトリやファイルをツリー表示するコマンド
+  - git # ソースコードのバージョン管理
+  - avahi-daemon # ローカル環境のホスト名解決
+
+# ユーザー作成
+users:
+  - name: __USERNAME__ # 新規作成するユーザー名の設定
+    lock_passwd: true # パスワードによるログインを禁止
+    sudo: ALL=(ALL) NOPASSWD:ALL # sudo 実行の際にパスワード入力を不要化
+    shell: /bin/bash # デフォルトで使用する shell を設定
+    ssh-authorized-keys: # ssh 接続時に使用する、公開鍵を設定
+      - __PUBKEY__
+    groups: # docker コマンド実施の際に sudo を不要にするため docker グループへ追加
+      - docker
+
+# ユーザーのパスワード設定
+chpasswd:
+  list: | # ユーザー:パスワードを設定
+    __USERNAME__:__PASSWORD__
+  expire: false # パスワードに期限を設定しない
+
+# ファイルの作成 & 追記
+write_files:
+  # マウント先　の git リポジトリが安全であることを追加
+  - path: /home/__USERNAME__/.gitconfig # ファイルのパス
+    owner: __USERNAME__:__USERNAME__ # ファイルの権限設定 ユーザー:グループ
+    append: true # 追記可能
+    defer: true # ユーザー作成が終わるまでこのファイル作成を遅延
+    content: | # ファイル内容
+      [safe]
+        directory = /home/__USERNAME__/repositories
+  # インタラクティブモードで bash を開いた際の処理を追加
+  - path: /home/__USERNAME__/.bashrc
+    owner: __USERNAME__:__USERNAME__
+    append: true
+    defer: true
+    content: |
+      # マウントディレクトリの環境変数を設定
+      readonly SYNC_DIR=/home/__USERNAME__/repositories
+
+      # docker compose のエイリアスを設定（SYNC_DIR下に compose.yml があることを想定）
+      alias cdsync='cd ${SYNC_DIR}'
+      alias dcu='pushd ${SYNC_DIR}; docker compose up -d; popd'
+      alias dcd='pushd ${SYNC_DIR}; docker compose down; popd'
+      alias dcs='pushd ${SYNC_DIR}; docker compose stop; popd'
+      alias dcr='pushd ${SYNC_DIR}; docker compose restart; popd'
+      alias dcrmia='pushd ${SYNC_DIR}; docker compose down --rmi all --volumes --remove-orphans; popd'
+
+      # Remote-SSH ログイン時に vscode 拡張を自動インストール
+      if [[ -e "$(which code)" ]] && [[ -d "/home/__USERNAME__/.enable_install_vscode_extensions" ]]; then
+        xargs -I {} code --install-extension {} --force < /home/__USERNAME__/vscode_extensions.txt
+        rm -rf /home/__USERNAME__/.enable_install_vscode_extensions
+      fi
+      [[ "${TERM_PROGRAM}" != "vscode" ]] && rm -rf /home/__USERNAME__/.enable_install_vscode_extensions
+  # ssh ログイン時の処理を追加
+  - path: /home/__USERNAME__/.profile
+    owner: __USERNAME__:__USERNAME__
+    append: true
+    defer: true
+    content: | # vscode 拡張のインストールを有効化するディレクトリを作成
+      mkdir -p /home/__USERNAME__/.enable_install_vscode_extensions
+  # 自動インストールする vscode 拡張の ID 一覧
+  - path: /home/__USERNAME__/vscode_extensions.txt
+    owner: __USERNAME__:__USERNAME__
+    defer: true
+    content: |
+      esbenp.prettier-vscode
+
+# コマンド実行（すべての初期化処理の最後に実行）
+runcmd:
+  # マウント先のディレクトリをユーザー権限で作成
+  - su -c "mkdir /home/__USERNAME__/repositories" - __USERNAME__
+  # 作業ディレクトリを変更
+  - cd /home/__USERNAME__/repositories
+  # docker インストール
+  - curl --proto '=https' --tlsv1.2 -sSfL https://get.docker.com | bash -s -- --version 26.0
+  # act インストール
+  - curl --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/nektos/act/master/install.sh | bash -s -- -b /usr/local/bin v0.2.60
