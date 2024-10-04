@@ -3,7 +3,7 @@
 
 function Start-Mount {
   # ローカルのディレクトリをインスタンス側にマウント
-  Mount-Directory # 管理者として実行すること
+  Mount-Directory
 }
 
 Start-Mount
