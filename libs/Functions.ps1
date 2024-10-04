@@ -191,6 +191,6 @@ function Mount-Directory {
   $instanceName = $Placeholders.GetInstanceName()
   $userName = $Placeholders.GetUserName()
 
-  # ローカルの scripts ディレクトリをインスタンス側にマウント
-  multipass mount ./.scripts ${instanceName}:/home/${userName}/repositories/.scripts
+  # ローカルの mount ディレクトリをインスタンス側にマウント
+  multipass mount ./mount ${instanceName}:/home/${userName}/repositories/mount
 }
