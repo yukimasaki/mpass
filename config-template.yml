@@ -79,6 +79,7 @@ write_files:
     defer: true
     content: |
       esbenp.prettier-vscode
+      ms-azuretools.vscode-docker
 
 # コマンド実行（すべての初期化処理の最後に実行）
 runcmd:
