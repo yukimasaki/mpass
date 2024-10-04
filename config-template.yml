@@ -84,8 +84,6 @@ write_files:
 runcmd:
   # マウント先のディレクトリをユーザー権限で作成
   - su -c "mkdir /home/__USERNAME__/repositories" - __USERNAME__
-  # 作業ディレクトリを変更
-  - cd /home/__USERNAME__/repositories
   # docker インストール
   - curl --proto '=https' --tlsv1.2 -sSfL https://get.docker.com | bash -s -- --version 26.0
   # act インストール
