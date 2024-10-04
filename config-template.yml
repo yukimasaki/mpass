@@ -15,6 +15,7 @@ packages:
   - tree # ディレクトリやファイルをツリー表示するコマンド
   - git # ソースコードのバージョン管理
   - avahi-daemon # ローカル環境のホスト名解決
+  - make # Makefileによるビルド作業の自動化
 
 # ユーザー作成
 users:
