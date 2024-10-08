@@ -101,7 +101,14 @@ function New-Key-Pair {
   
   # Multipass 仮想環境へ SSH 接続するためのキーペアをホストマシン上に作成
   $hostName = $Placeholders.GetHostName()
-  ssh-keygen -t ed25519 -N "" -f "$HOME/.ssh/$hostName"
+  $sshKeyPath = "$HOME/.ssh/$hostName"
+
+  if (Test-Path $sshKeyPath) {
+    return $false
+  } else {
+    ssh-keygen -t ed25519 -N "" -f $sshKeyPath
+    return $true
+  }
 }
 
 # config ファイルへ接続設定を追記
@@ -131,12 +138,13 @@ Host $hostName
     Write-Host "config ファイルを新規作成しました。"
   }
 
-  # 秘密鍵が存在しない場合のみSSH 設定を追加
-  if (Test-Path "$sshDir/$hostName") {
-    Write-Host "秘密鍵が既に存在するため、config ファイルに SSH 接続設定は追記されませんでした。"
-  }
+  # キーペア作成処理を実行し結果を格納する
+  $isExist = New-Key-Pair
 
-  if (-not (Test-Path "$sshDir/$hostName")) {
+  # 秘密鍵が存在しない場合のみSSH 設定を追加
+  if ($isExist) {
+    Write-Host "秘密鍵が既に存在するため、config ファイルに SSH 接続設定は追記されませんでした。"
+  } else {
     # 2行の改行を追加してSSH 設定を追記
     Add-Content -Path $sshConfig -Value "`r`n`r`n$sshConfigEntry"
     Write-Host "config ファイルに SSH 接続設定を追記しました。"
