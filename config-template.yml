@@ -61,6 +61,7 @@ write_files:
       alias dcs='pushd ${SYNC_DIR}; docker compose stop; popd'
       alias dcr='pushd ${SYNC_DIR}; docker compose restart; popd'
       alias dcrmia='pushd ${SYNC_DIR}; docker compose down --rmi all --volumes --remove-orphans; popd'
+      alias kamal='docker run -it --rm -v "${PWD}:/workdir" -v "/run/host-services/ssh-auth.sock:/run/host-services/ssh-auth.sock" -e SSH_AUTH_SOCK="/run/host-services/ssh-auth.sock" -v /root/.ssh:/root/.ssh -v /var/run/docker.sock:/var/run/docker.sock ghcr.io/basecamp/kamal:latest'
 
       # Remote-SSH ログイン時に vscode 拡張を自動インストール
       if [[ -e "$(which code)" ]] && [[ -d "/__USERNAME__/.enable_install_vscode_extensions" ]]; then
