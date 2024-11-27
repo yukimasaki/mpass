@@ -82,6 +82,15 @@ write_files:
     content: |
       esbenp.prettier-vscode
       ms-azuretools.vscode-docker
+      eliostruyf.vscode-front-matter
+      donjayamanne.githistory
+      oderwat.indent-rainbow
+      ms-ceintl.vscode-language-pack-ja
+      bradlc.vscode-tailwindcss
+      corschenzi.mermaid-graphical-editor
+      unifiedjs.vscode-mdx
+      bierner.markdown-mermaid
+      ms-vscode.makefile-tools
 
 # コマンド実行（すべての初期化処理の最後に実行）
 runcmd:
